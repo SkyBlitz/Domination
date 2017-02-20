@@ -1,24 +1,111 @@
 package com.scarabcoder.domination.main;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.scarabcoder.domination.commands.DominationCommand;
 import com.scarabcoder.domination.enums.MessageType;
+import com.scarabcoder.domination.listeners.PlayerJoinListener;
+import com.scarabcoder.domination.objects.GamePlayer;
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class Main extends JavaPlugin {
 	
+	private static HashMap<UUID, GamePlayer> players = new HashMap<UUID, GamePlayer>();
+	
+	
 	private static Connection connection;
+	
+	private static Plugin plugin;
+	
+	public static FileConfiguration arenas;
+	
+	public static File arenasFile;
+	
+	private static WorldEditPlugin we;
 	
 	public void onEnable(){
 		
+		Main.plugin = this;
+		
+		this.getConfig().options().copyDefaults(true);
+		this.saveConfig();
+		
+		this.initArenasConfig();
+		
+		this.getCommand("domination").setExecutor(new DominationCommand());
+		
+		we = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
+		
 		this.initMySQL();
 		
+		this.registerListeners();
 		
+	}
+	
+	public static WorldEditPlugin getWorldEdit(){
+		return we;
+	}
+	
+	public static void saveArenas(){
+		try {
+			arenas.save(arenasFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void initArenasConfig(){
+		arenasFile = new File(this.getDataFolder(), "arenas.yml");
 		
+		if(!arenasFile.exists()){
+			try {
+				arenasFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		
+		arenas = new YamlConfiguration();
+		try {
+			arenas.load(arenasFile);
+		} catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static Plugin getPlugin(){
+		return plugin;
+	}
+	
+	private void registerListeners(){
+		Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
+		Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
+	}
+	
+	public static void removeGamePlayer(UUID id){
+		players.remove(id);
+	}
+	
+	public static void setGamePlayer(Player p){
+		players.put(p.getUniqueId(), new GamePlayer(p));
+	}
+	
+	public static GamePlayer getGamePlayer(UUID id){
+		return players.get(id);
 	}
 	
 	public void initMySQL(){

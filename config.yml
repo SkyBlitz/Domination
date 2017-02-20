@@ -4,3 +4,7 @@ mysql:
     pass: FILL
     schema: FILL
     prefix: 'dom'
+permissions:
+    admin: 'domination.admin'
+    player: 'domination.player'
+    moderator: 'domination.moderator'
