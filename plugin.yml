@@ -1,0 +1,6 @@
+name: Domination
+version: 1.0
+main: com.scarabcoder.domination.main.Main
+commands:
+    domination:
+        description: Main plugin command

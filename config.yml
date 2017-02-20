@@ -1,0 +1,6 @@
+mysql:
+    ip: FILL
+    user: FILL
+    pass: FILL
+    schema: FILL
+    prefix: 'dom'
