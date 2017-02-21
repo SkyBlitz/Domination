@@ -8,3 +8,5 @@ permissions:
     admin: 'domination.admin'
     player: 'domination.player'
     moderator: 'domination.moderator'
+game: none
+lobbytime: 25

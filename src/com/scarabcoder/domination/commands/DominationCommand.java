@@ -52,9 +52,14 @@ public class DominationCommand implements CommandExecutor {
 							}else if(args[1].equalsIgnoreCase("setspawn")){
 								if(arena){
 									if(args[2].equals("red") || args[2].equals("green")){
-										DataManager.saveLocation(p.getArena() + ".team." + args[2] + ".spawn", p.getPlayer().getLocation().getBlock().getLocation());
+										System.out.println(p.getArena() + ".team." + args[2] + ".spawn");
+										System.out.println(Main.arenas.contains(p.getArena() + ".team." + args[2] + ".spawn"));
+										DataManager.saveLocation(p.getArena() + ".team." + args[2] + ".spawn", p.getPlayer().getLocation());
+										p.sendMessage(ChatColor.GREEN + "Set team " + args[2] + " spawnpoint.");
 									}else if(args[2].equalsIgnoreCase("lobby")){
-										DataManager.saveLocation(p.getArena() + ".lobbyspawn", p.getPlayer().getLocation().getBlock().getLocation());
+										
+										DataManager.saveLocation(p.getArena() + ".lobbyspawn", p.getPlayer().getLocation());
+										p.sendMessage(ChatColor.GREEN + "Set team lobby spawnpoint.");
 									}else{
 										p.sendMessage(ChatColor.RED + "Invalid team (use green/red).");
 									}
@@ -64,7 +69,8 @@ public class DominationCommand implements CommandExecutor {
 							}else if(args[1].equalsIgnoreCase("active")){
 								if(arena){
 									if(args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("false")){
-										Main.arenas.set(p.getArena() + ".active", Boolean.valueOf(args[2]));
+										Main.getPlugin().getConfig().set("game", (args[2].equalsIgnoreCase("true") ? p.getArena() : "none"));
+										p.sendMessage(ChatColor.GREEN + "Game is now active!");
 									}else{
 										p.sendMessage(ChatColor.RED + "Invalid args, use true/false.");
 									}
@@ -97,8 +103,15 @@ public class DominationCommand implements CommandExecutor {
 									p.sendMessage(Message.NOARENA.toString());
 								}
 							}else if(args[1].equalsIgnoreCase("lobbyserver")){
-								Main.arenas.set("lobbyserver", args[2]);
+								Main.arenas.set(p.getArena() + ".lobbyserver", args[2]);
 								p.sendMessage(ChatColor.GREEN  + "Set lobby server to \"" + args[2] + "\".");
+							}else if(args[1].equalsIgnoreCase("edit")){
+								if(Main.arenas.contains(args[2])){
+									p.setMode(PlayerMode.EDIT, args[2]);
+									p.sendMessage(ChatColor.GREEN + "Entered edit mode for \"" + args[2] + "\".");
+								}else{
+									p.sendMessage(ChatColor.RED + "Arena not found!");
+								}
 							}else{
 								p.sendMessage(Message.INVALIDARGS.toString());
 							}
@@ -109,6 +122,7 @@ public class DominationCommand implements CommandExecutor {
 						p.sendMessage(Message.NOPERMS.toString());
 					}
 					Main.saveArenas();
+					Main.getPlugin().saveConfig();
 				}else{
 					
 				}

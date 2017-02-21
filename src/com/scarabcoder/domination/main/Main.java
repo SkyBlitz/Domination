@@ -18,7 +18,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.scarabcoder.domination.commands.DominationCommand;
 import com.scarabcoder.domination.enums.MessageType;
+import com.scarabcoder.domination.listeners.PingListener;
 import com.scarabcoder.domination.listeners.PlayerJoinListener;
+import com.scarabcoder.domination.listeners.PlayerQuitListener;
+import com.scarabcoder.domination.objects.Game;
 import com.scarabcoder.domination.objects.GamePlayer;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
@@ -34,6 +37,8 @@ public class Main extends JavaPlugin {
 	public static FileConfiguration arenas;
 	
 	public static File arenasFile;
+	
+	public static Game game;
 	
 	private static WorldEditPlugin we;
 	
@@ -54,6 +59,19 @@ public class Main extends JavaPlugin {
 		
 		this.registerListeners();
 		
+		
+		for(Player p : Bukkit.getOnlinePlayers()){
+			Main.setGamePlayer(p);
+		}
+		
+		if(!this.getConfig().getString("game").equalsIgnoreCase("none")){
+			game = new Game(this.getConfig().getString("game"));
+		}
+		
+	}
+	
+	public static boolean isGameRunning(){
+		return !(game == null);
 	}
 	
 	public static WorldEditPlugin getWorldEdit(){
@@ -94,6 +112,7 @@ public class Main extends JavaPlugin {
 	private void registerListeners(){
 		Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
+		Bukkit.getPluginManager().registerEvents(new PingListener(), this);
 	}
 	
 	public static void removeGamePlayer(UUID id){

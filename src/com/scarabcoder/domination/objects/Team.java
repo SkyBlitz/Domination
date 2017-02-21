@@ -1,5 +1,8 @@
 package com.scarabcoder.domination.objects;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.md_5.bungee.api.ChatColor;
 
 import org.bukkit.Location;
@@ -7,6 +10,8 @@ import org.bukkit.Location;
 public class Team {
 	
 	private ChatColor color;
+	
+	private List<GamePlayer> players = new ArrayList<GamePlayer>();
 	
 	private String name;
 	
@@ -17,6 +22,11 @@ public class Team {
 	public Team(ChatColor color, String name, Location spawn){
 		this.color = color;
 		this.name = name;
+		this.spawn = spawn;
+	}
+	
+	public void addPlayer(GamePlayer p){
+		players.add(p);
 	}
 	
 	public int addPoints(int amount){
@@ -54,6 +64,14 @@ public class Team {
 
 	public void setPoints(int points) {
 		this.points = points;
+	}
+
+	public List<GamePlayer> getPlayers() {
+		return players;
+	}
+
+	public void setPlayers(List<GamePlayer> players) {
+		this.players = players;
 	}
 	
 	
