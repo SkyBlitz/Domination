@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -115,6 +116,44 @@ public class Main extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
 		Bukkit.getPluginManager().registerEvents(new PingListener(), this);
 		Bukkit.getPluginManager().registerEvents(new DeathListener(), this);
+	}
+	
+	public static boolean isInRect(Player p, Location l1, Location l2)
+	{
+	    Location pl = p.getLocation();
+	    
+	    double x1 = l1.getX();
+	    double y1 = l1.getY();
+	    double z1 = l1.getZ();
+	    
+	    double x2 = l2.getX();
+	    double y2 = l2.getY();
+	    double z2 = l2.getZ();
+	    
+	    if(l1.getX() > l2.getX()){
+	    	x1 = l2.getX();
+	    	x2 = l1.getX();
+	    }
+	    if(l1.getY() > l2.getY()){
+	    	y1 = l2.getY();
+	    	y2 = l1.getY();
+	    }
+	    if(l1.getZ() > l2.getZ()){
+	    	z1 = l2.getZ();
+	    	z2 = l1.getZ();
+	    }
+	    
+	    if((pl.getX() >= x1) && (pl.getX() <= x2)){
+		    if((pl.getY() >= y1) && (pl.getY() <= y2)){
+			    if((pl.getZ() >= z1) && (pl.getZ() <= z2)){
+			    	return true;
+			    }
+		    }
+	    }
+	    
+	    
+	    
+	    return false;
 	}
 	
 	public static void removeGamePlayer(UUID id){

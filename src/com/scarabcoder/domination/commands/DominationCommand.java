@@ -80,6 +80,7 @@ public class DominationCommand implements CommandExecutor {
 							}else if(args[1].equalsIgnoreCase("setpoint")){
 								if(arena){
 									Selection sel = Main.getWorldEdit().getSelection(p.getPlayer());
+									
 									if(sel != null){
 										DataManager.saveLocation(p.getArena() + ".capturepoints." + args[2] + ".loc1", sel.getMinimumPoint());
 										DataManager.saveLocation(p.getArena() + ".capturepoints." + args[2] + ".loc2", sel.getMaximumPoint());

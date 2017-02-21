@@ -47,7 +47,7 @@ public class DeathListener implements Listener {
 				
 				}
 				
-			}, 5);
+			}, 2);
 		e.setDeathMessage(null);
 		}
 	}

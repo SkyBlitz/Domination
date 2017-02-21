@@ -1,6 +1,14 @@
 package com.scarabcoder.domination.objects;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.md_5.bungee.api.ChatColor;
+
+import org.bukkit.DyeColor;
 import org.bukkit.Location;
+
+import com.scarabcoder.domination.main.Main;
 
 public class CapturePoint {
 	
@@ -14,12 +22,45 @@ public class CapturePoint {
 	
 	private String name;
 	
+	private boolean captured = false;
+	
 	
 	public CapturePoint(Location l1, Location l2, String name){
 		this.l1 = l1;
 		this.l2 = l2;
 		this.name = name;
 	}
+	
+	public List<GamePlayer> getGamePlayerInArea(Game game){
+		List<GamePlayer> pls = new ArrayList<GamePlayer>();
+		
+		for(GamePlayer p : game.getPlayers()){
+			if(Main.isInRect(p.getPlayer(), l1, l2)){
+				pls.add(p);
+			}
+		}
+		
+		return pls;
+	}
+	
+	public DyeColor getColor(){
+		return (this.getTeam().getColor().equals(ChatColor.RED) ? DyeColor.RED : DyeColor.GREEN);
+	}
+	
+	public DyeColor getEnemyColor(){
+		return (this.getTeam().getColor().equals(ChatColor.RED) ? DyeColor.GREEN : DyeColor.RED);
+		
+	}
+	
+	public boolean isCaptured(){
+		return captured;
+	}
+	
+	public void setCaptured(boolean captured){
+		this.captured = captured;
+	}
+	
+	
 
 
 	public Location getL1() {
@@ -58,7 +99,13 @@ public class CapturePoint {
 
 
 	public void setCaptureStatus(double captureStatus) {
-		this.captureStatus = captureStatus;
+		if(captureStatus < 0.0){
+			this.captureStatus = 0.0;
+		}else if(captureStatus > 1.0){
+			this.captureStatus = 1.0;
+		}else{
+			this.captureStatus = captureStatus;
+		}
 	}
 
 
