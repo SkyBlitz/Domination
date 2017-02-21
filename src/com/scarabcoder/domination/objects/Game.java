@@ -7,11 +7,15 @@ import java.util.Random;
 import net.md_5.bungee.api.ChatColor;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.scarabcoder.domination.enums.GameStatus;
 import com.scarabcoder.domination.main.Main;
 import com.scarabcoder.domination.managers.DataManager;
+import com.scarabcoder.domination.managers.ItemNames;
 
 public class Game {
 	
@@ -60,9 +64,11 @@ public class Game {
 			public void run() {
 				
 				if(getStatus().equals(GameStatus.WAITING)){
+					String msg = ChatColor.GREEN + "Game starting in " + ChatColor.BOLD + countdown + ChatColor.RESET + ChatColor.GREEN.toString() + " seconds!";
 					if(players.size() >= min){
 						if(countdown == Main.getPlugin().getConfig().getInt("lobbytime")){
-							broadcastMessage(ChatColor.GREEN + "Game starting in " + ChatColor.BOLD + countdown + ChatColor.RESET + ChatColor.GREEN.toString() + " seconds!");
+							
+							broadcastMessage(msg);
 							countdown --;
 						}
 					}
@@ -70,9 +76,9 @@ public class Game {
 						if(players.size() >= min){
 							if(countdown != 0){
 								if((double)countdown % 10D == 0D){
-									broadcastMessage(ChatColor.GREEN + "Game starting in " + ChatColor.BOLD + countdown + ChatColor.RESET + ChatColor.GREEN.toString() + " seconds!");
+									broadcastMessage(msg);
 								}else if(countdown < 6){
-									broadcastMessage(ChatColor.GREEN + "Game starting in " + ChatColor.BOLD + countdown + ChatColor.RESET + ChatColor.GREEN.toString() + " seconds!");
+									broadcastMessage(msg);
 								}
 								countdown --;
 							}else{
@@ -97,6 +103,7 @@ public class Game {
 		
 		
 	}
+	
 	
 	public void addPlayer(Player p){
 		GamePlayer gm = Main.getGamePlayer(p.getUniqueId());
@@ -131,6 +138,58 @@ public class Game {
 		}else{
 			this.broadcastMessage(ChatColor.GREEN + p.getName() + " joined " + team.getColor().toString() + ChatColor.BOLD + team.getName() + ChatColor.RESET + ".");
 		}
+	}
+	
+
+	public void handleDeath(EntityDamageByEntityEvent e) {
+		
+		GamePlayer d = this.playerToGamePlayer((Player) e.getEntity());
+		
+		GamePlayer h;
+		
+		if(e.getDamager() instanceof Arrow){
+			h = this.playerToGamePlayer((Player) ((Arrow) e.getDamager()).getShooter());
+		}else{
+			h = this.playerToGamePlayer((Player) e.getDamager());
+		}
+		
+		int distance = (int) Math.abs(h.getPlayer().getLocation().distance(d.getPlayer().getLocation()));
+		
+		String msg;
+		if(e.getCause().equals(DamageCause.PROJECTILE)){
+			msg = getTeam(d).getColor() + d.getPlayer().getName() + ChatColor.GRAY + " was shot by " + getTeam(h).getColor() + h.getPlayer().getName() + ChatColor.GRAY + " from " + ChatColor.DARK_GRAY + distance + "m";
+		}else{
+			msg = getTeam(d).getColor() + d.getPlayer().getName() + ChatColor.GRAY + " was slain by " + getTeam(h).getColor() + h.getPlayer().getName() + ChatColor.GRAY;
+			if(h.getPlayer().getItemInHand() != null){
+				msg += " wielding his " + ChatColor.DARK_GRAY + ItemNames.lookup(h.getPlayer().getItemInHand());;
+			}else{
+				msg += " with his bare fist!";
+			}
+		}
+		
+		this.broadcastMessage(msg);
+		
+		
+		
+	}
+	
+	public Team getTeam(Player p){
+		GamePlayer gp = this.playerToGamePlayer(p);
+		return (red.getPlayers().contains(gp) ? red : green);
+		
+	}
+	
+	private GamePlayer playerToGamePlayer(Player p){
+		for(GamePlayer p2 : this.getPlayers()){
+			if(p2.getPlayer().getUniqueId().equals(p.getUniqueId())){
+				return p2;
+			}
+		}
+		return null;
+	}
+	
+	private Team getTeam(GamePlayer p){
+		return this.getTeam(p.getPlayer());
 	}
 	
 	public Team getRedTeam(){
@@ -194,6 +253,8 @@ public class Game {
 			
 		}
 	}
+
+
 	
 	
 	

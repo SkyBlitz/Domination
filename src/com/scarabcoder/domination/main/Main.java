@@ -18,6 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.scarabcoder.domination.commands.DominationCommand;
 import com.scarabcoder.domination.enums.MessageType;
+import com.scarabcoder.domination.listeners.DeathListener;
 import com.scarabcoder.domination.listeners.PingListener;
 import com.scarabcoder.domination.listeners.PlayerJoinListener;
 import com.scarabcoder.domination.listeners.PlayerQuitListener;
@@ -113,6 +114,7 @@ public class Main extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
 		Bukkit.getPluginManager().registerEvents(new PingListener(), this);
+		Bukkit.getPluginManager().registerEvents(new DeathListener(), this);
 	}
 	
 	public static void removeGamePlayer(UUID id){
