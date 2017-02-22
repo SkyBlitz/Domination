@@ -104,7 +104,7 @@ public class DominationCommand implements CommandExecutor {
 									p.sendMessage(Message.NOARENA.toString());
 								}
 							}else if(args[1].equalsIgnoreCase("lobbyserver")){
-								Main.arenas.set(p.getArena() + ".lobbyserver", args[2]);
+								Main.getPlugin().getConfig().set("lobby", args[2]);
 								p.sendMessage(ChatColor.GREEN  + "Set lobby server to \"" + args[2] + "\".");
 							}else if(args[1].equalsIgnoreCase("edit")){
 								if(Main.arenas.contains(args[2])){
@@ -112,6 +112,27 @@ public class DominationCommand implements CommandExecutor {
 									p.sendMessage(ChatColor.GREEN + "Entered edit mode for \"" + args[2] + "\".");
 								}else{
 									p.sendMessage(ChatColor.RED + "Arena not found!");
+								}
+							}else if(args[1].equalsIgnoreCase("savekit")){
+								p.saveInventoryAsKit(args[2]);
+								p.sendMessage(ChatColor.GREEN + "Saved current inventory as kit.");
+							}else if(args[1].equalsIgnoreCase("loadkit")){
+								if(Main.kits.contains(args[2])){
+									p.loadKit(args[2]);
+									p.sendMessage(ChatColor.GREEN + "Kit applied.");
+								}else{
+									p.sendMessage(ChatColor.RED + "Kit not found!");
+								}
+							}else if(args[1].equalsIgnoreCase("winscore")){
+								if(p.getArena() != null){
+									try{
+										Main.arenas.set(p.getArena() + ".winscore", Integer.valueOf(args[2]));
+										p.sendMessage(ChatColor.GREEN + "Set arena winning score to " + args[2]);
+									} catch(NumberFormatException e){
+										p.sendMessage(ChatColor.RED + "Expected number, got string.");
+									}
+								}else{
+									p.sendMessage(Message.NOARENA.toString());
 								}
 							}else{
 								p.sendMessage(Message.INVALIDARGS.toString());
@@ -123,12 +144,13 @@ public class DominationCommand implements CommandExecutor {
 						p.sendMessage(Message.NOPERMS.toString());
 					}
 					Main.saveArenas();
+					Main.saveKits();
 					Main.getPlugin().saveConfig();
 				}else{
 					
 				}
 			}else{
-				this.displayHelp(p);
+				p.showHelp();
 			}
 			
 		}else{

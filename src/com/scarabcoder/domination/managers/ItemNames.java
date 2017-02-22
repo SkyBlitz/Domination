@@ -592,7 +592,8 @@ public class ItemNames {
      * @param stack the item stack
      * @return a friendly printable name for the item
      */
-    public static String lookup(ItemStack stack) {
+    @SuppressWarnings("deprecation")
+	public static String lookup(ItemStack stack) {
         if (stack.hasItemMeta()) {
             ItemMeta meta = stack.getItemMeta();
             if (meta.getDisplayName() != null) {

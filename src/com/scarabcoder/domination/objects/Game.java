@@ -8,13 +8,13 @@ import net.md_5.bungee.api.ChatColor;
 
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.material.Wool;
 
 import com.scarabcoder.domination.enums.GameStatus;
 import com.scarabcoder.domination.main.Main;
@@ -35,9 +35,15 @@ public class Game {
 	
 	private int min;
 	
+	private Location lobby;
+	
 	private int countdown;
 	
+	private int wincount;
+	
 	private Game game;
+	
+	private boolean ended = false;
 	
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
 	
@@ -47,7 +53,12 @@ public class Game {
 		
 		game = this;
 		
+		
 		this.name = nameID;
+		
+		this.lobby = DataManager.getLocation(this.getName() + ".lobbyspawn");
+		
+		this.wincount = Main.arenas.getInt(this.getName() + ".winscore");
 		
 		max = Main.arenas.getInt(this.getName() + ".maxteamsize");
 		min = Main.arenas.getInt(this.getName() + ".minteamsize");
@@ -66,6 +77,28 @@ public class Game {
 		red = new Team(ChatColor.RED, "Red", DataManager.getLocation(this.getName() + ".team.red.spawn"));
 		green = new Team(ChatColor.GREEN, "Green", DataManager.getLocation(this.getName() + ".team.green.spawn"));
 		
+		for(CapturePoint p : this.getPoints()){
+			Location l1 = p.getL1().clone();
+			Location l2 = p.getL2().clone();
+			
+			if(l1.getY() > l2.getY()){
+				l1.setY(l2.getY());
+			}else{
+				l2.setY(l1.getY());
+			}
+			
+			Location current = l1.clone();
+			int x = 0;
+			int z = 0;
+			for(x = (int) l1.getX(); x != l2.getX(); x += (l1.getX() > l2.getX() ? -1 : 1)){
+				for(z = (int) l1.getZ(); z != l2.getZ(); z += (l1.getZ() > l2.getZ() ? -1 : 1)){
+					current.setZ(z);
+					current.getBlock().setType(Material.WOOL);
+				}
+				current.setX(x);
+			}
+		}
+		
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(), new Runnable(){
 
 			@SuppressWarnings("deprecation")
@@ -74,7 +107,7 @@ public class Game {
 				
 				if(getStatus().equals(GameStatus.WAITING)){
 					String msg = ChatColor.GREEN + "Game starting in " + ChatColor.BOLD + countdown + ChatColor.RESET + ChatColor.GREEN.toString() + " seconds!";
-					if(players.size() >= min){
+					if(players.size() >= min * 2){
 						if(countdown == Main.getPlugin().getConfig().getInt("lobbytime")){
 							
 							broadcastMessage(msg);
@@ -82,7 +115,7 @@ public class Game {
 						}
 					}
 					if(countdown != Main.getPlugin().getConfig().getInt("lobbytime")){
-						if(players.size() >= min){
+						if(players.size() >= min * 2){
 							if(countdown != 0){
 								if((double)countdown % 10D == 0D){
 									broadcastMessage(msg);
@@ -105,67 +138,129 @@ public class Game {
 						}
 					}
 				}else{
-					for(CapturePoint p : points){
-						Location l1 = p.getL1().clone();
-						Location l2 = p.getL2().clone();
-						
-						if(l1.getY() > l2.getY()){
-							l1.setY(l2.getY());
-						}else{
-							l2.setY(l1.getY());
+					if(!ended){
+						if((red.getPoints() >= game.wincount) || (green.getPoints() >= game.wincount)){
+							Team win = (red.getPoints() >= wincount ? red : green);
+							ended = true;
+							game.broadcastMessage(win.getColor().toString() + ChatColor.BOLD + win.getName() + ChatColor.GOLD + " wins the game!");
+							Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), new Runnable(){
+	
+								@Override
+								public void run() {
+									game.endGame();
+								}
+								
+							}, 8 * 20);
 						}
-						
-						Location current = l1.clone();
-						int x = 0;
-						int z = 0;
-						for(x = (int) l1.getX(); x != l2.getX(); x += (l1.getX() > l2.getX() ? -1 : 1)){
-							for(z = (int) l1.getZ(); z != l2.getZ(); z += (l1.getZ() > l2.getZ() ? -1 : 1)){
-								current.setZ(z);
-								double r = new Random().nextDouble();
-								current.getBlock().setType(Material.WOOL);
-								if(p.getTeam() != null)
-								current.getBlock().setData(p.getColor().getData());
-								if(p.getCaptureStatus() != 0.0){
-									if(r <= p.getCaptureStatus()){
-										if(!p.isCaptured() && (p.getTeam() != null)){
-											current.getBlock().setData(p.getEnemyColor().getData());
-										}
+					}
+					for(CapturePoint p : points){
+						List<GamePlayer> pls = p.getGamePlayerInArea(game);
+						boolean dif = false;
+						Team team = null;
+						for(GamePlayer pl : pls){
+							if(team == null){
+								team = game.getTeam(pl);
+							}else{
+								if(!team.equals(game.getTeam(pl))){
+									dif = true;
+									break;
+								}
+							}
+						}
+						if(!dif){
+							for(GamePlayer pl : pls){
+								Team tm = game.getTeam(pl);
+								
+								if(p.getTeam() == null){
+									p.setTeam(tm);
+									p.setCaptureStatus(0.9);
+									game.broadcastMessage(tm.getColor() + ChatColor.BOLD.toString() + tm.getName() + ChatColor.RESET + " is capturing point " + ChatColor.BOLD.toString() + p.getName());
+	
+								}else if(!p.isCaptured()){
+									if(!p.getTeam().equals(game.getTeam(pl))){
+										p.setTeam(tm);
+										p.setCaptureStatus(0.9);
+										
+									}
+								}
+								if(p.isCaptured()){
+									if(p.getCaptureStatus() == 0.0)
+									p.getTeam().addPoints(1);
+								}
+								if(!game.getTeam(pl).equals(p.getTeam())){
+									if(p.getCaptureStatus() == 0.0) game.broadcastMessage(tm.getColor() + ChatColor.BOLD.toString() + tm.getName() + ChatColor.RESET + " is capturing point " + ChatColor.BOLD.toString() + p.getName());
+									p.setCaptureStatus(p.getCaptureStatus() + 0.1);
+									
+								}else{
+									if(p.getCaptureStatus() != 0.0){
+										p.setCaptureStatus(p.getCaptureStatus() - 0.1);
 									}else{
-										if(p.isCaptured()){
+										if(!p.isCaptured()){
+											p.setCaptured(true);
+										}
+									}
+								}
+								if(p.getCaptureStatus() == 1.0){
+									
+									p.setTeam((p.getTeam().equals(red) ? green : red));
+									p.setCaptureStatus(0.0);
+									game.broadcastMessage(p.getTeam().getColor() + ChatColor.BOLD.toString() + p.getTeam().getName() + ChatColor.WHITE + " has captured point " + ChatColor.BOLD + p.getName());
+								}
+								
+								
+							}
+							Location l1 = p.getL1().clone();
+							Location l2 = p.getL2().clone();
+							
+							if(l1.getY() > l2.getY()){
+								l1.setY(l2.getY());
+							}else{
+								l2.setY(l1.getY());
+							}
+							
+							Location current = l1.clone();
+							int x = 0;
+							int z = 0;
+							if(pls.size() != 0){
+								for(x = (int) l1.getX(); x != l2.getX(); x += (l1.getX() > l2.getX() ? -1 : 1)){
+									for(z = (int) l1.getZ(); z != l2.getZ(); z += (l1.getZ() > l2.getZ() ? -1 : 1)){
+										current.setZ(z);
+										double r = new Random().nextDouble();
+										current.getBlock().setType(Material.WOOL);
+										if(p.getTeam() != null && (!p.isCaptured())){
+											current.getBlock().setData(p.getColor().getData());
+											Location ofs = current.clone();
+											ofs.setY(current.getY() - 2);
+											current.getWorld().spigot().playEffect(ofs, Effect.STEP_SOUND, Material.WOOL.getId(), p.getEnemyColor().getData(), 0, 0, 0, 0, 0, 100);
+
+										}
+										if(p.getCaptureStatus() != 0.0){
+											if(r <= p.getCaptureStatus()){
+												if(!p.isCaptured() && (p.getTeam() != null)){
+													current.getBlock().setData(DyeColor.WHITE.getData());
+												}
+												if(p.isCaptured()){
+													current.getBlock().setData(p.getEnemyColor().getData());
+													Location ofs = current.clone();
+													ofs.setY(current.getY() - 2);
+													current.getWorld().spigot().playEffect(ofs, Effect.STEP_SOUND, Material.WOOL.getId(), p.getEnemyColor().getData(), 1, 1, 1, 1, 0, 100);
+												}
+											}else{
+												if(p.isCaptured()){
+													current.getBlock().setData(p.getColor().getData());
+												}
+											}
+										}else{
+											
+											if(p.getTeam() != null)
 											current.getBlock().setData(p.getColor().getData());
 										}
 									}
-								}else{
-									if(p.getTeam() != null)
-									current.getBlock().setData(p.getColor().getData());
+									current.setX(x);
 								}
 							}
-							current.setX(x);
-						}
-						
-						
-
-						for(GamePlayer pl : p.getGamePlayerInArea(game)){
-							//System.out.println(p.getCaptureStatus());
-							System.out.println(p.getCaptureStatus());
-							Team tm = game.getTeam(pl);
-							if(p.getTeam() == null){ 	
-								p.setTeam(tm);
-							}
-							if(!game.getTeam(pl).equals(p.getTeam())){
-								if(p.getCaptureStatus() == 0.0) game.broadcastMessage(tm.getColor() + ChatColor.BOLD.toString() + tm.getName() + ChatColor.RESET + " is capturing point " + ChatColor.BOLD.toString() + p.getName());
-								p.setCaptureStatus(p.getCaptureStatus() + 0.1);
-								
-							}else{
-								if(p.getCaptureStatus() != 0.0){
-									p.setCaptureStatus(p.getCaptureStatus() - 0.1);
-								}
-							}
-							if(p.getCaptureStatus() == 1.0){
-								p.setTeam((p.getTeam().equals(red) ? green : red));
-								p.setCaptureStatus(0.0);
-								game.broadcastMessage(p.getTeam().getColor() + ChatColor.BOLD.toString() + p.getTeam().getName() + ChatColor.WHITE + " has captured point " + p.getName());
-							}
+							
+							
 							
 							
 						}
@@ -179,8 +274,17 @@ public class Game {
 		
 	}
 	
+	public void endGame(){
+		for(GamePlayer p : this.getPlayers()){
+			this.removePlayer(p);
+		}
+		Main.game = new Game(this.getName());
+	}
+	
 	
 	public void addPlayer(Player p){
+		p.getInventory().clear();
+		p.updateInventory();
 		GamePlayer gm = Main.getGamePlayer(p.getUniqueId());
 		
 		this.players.add(gm);
@@ -209,7 +313,8 @@ public class Game {
 		
 		gm.sendMessage(ChatColor.GRAY + "You joined " + team.getColor().toString() + ChatColor.BOLD  + team.getName() + ChatColor.RESET + ".");
 		if(this.getStatus().equals(GameStatus.WAITING)){
-			this.broadcastMessage(ChatColor.GREEN + p.getName() + " joined the game (" + this.getPlayers().size() + "/" + max * 2 + ").");
+			this.broadcastMessage(team.getColor().toString() + p.getName() + ChatColor.GRAY + " joined the game (" + this.getPlayers().size() + "/" + max * 2 + ").");
+			p.teleport(team.getSpawn());
 		}else{
 			this.broadcastMessage(ChatColor.GREEN + p.getName() + " joined " + team.getColor().toString() + ChatColor.BOLD + team.getName() + ChatColor.RESET + ".");
 		}
@@ -248,6 +353,13 @@ public class Game {
 		
 		
 		
+	}
+	
+	public void removePlayer(GamePlayer gp) {
+		Team tm = this.getTeam(gp);
+		this.broadcastMessage(tm.getColor() + gp.getPlayer().getName() + ChatColor.GRAY + " quit the game.");
+		tm.removePlayer(gp);
+		this.players.remove(gp);
 	}
 	
 	public Team getTeam(Player p){
@@ -332,7 +444,6 @@ public class Game {
 	}
 
 
-	
 	
 	
 }

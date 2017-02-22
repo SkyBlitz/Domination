@@ -43,6 +43,8 @@ public class CapturePoint {
 		return pls;
 	}
 	
+	
+	
 	public DyeColor getColor(){
 		return (this.getTeam().getColor().equals(ChatColor.RED) ? DyeColor.RED : DyeColor.GREEN);
 	}

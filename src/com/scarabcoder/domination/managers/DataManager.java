@@ -2,6 +2,7 @@ package com.scarabcoder.domination.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.inventory.ItemStack;
 
 import com.scarabcoder.domination.main.Main;
 
@@ -35,7 +36,7 @@ public class DataManager {
 	public static void createArena(String arena){
 		Main.arenas.set(arena + ".team.red.spawn", "NONE");
 		Main.arenas.set(arena + ".team.green.spawn", "NONE");
-		
+		Main.arenas.set(arena + ".winscore", 150);
 		Main.arenas.set(arena + ".minteamsize", 1);
 		Main.arenas.set(arena + ".maxteamsize", 12);
 	}
@@ -56,6 +57,18 @@ public class DataManager {
 				Main.arenas.getDouble(prefix + ".z"),
 				Main.arenas.getInt(prefix + ".yaw"),
 				Main.arenas.getInt(prefix + ".pitch"));
+	}
+	
+	public static ItemStack[] getKitInventory(String kit){
+		ItemStack[] stack = new ItemStack[0];
+		stack = Main.kits.getList(kit + ".inventory").toArray(stack);
+		return stack;
+	}
+	
+	public static ItemStack[] getKitArmor(String kit){
+		ItemStack[] stack = new ItemStack[0];
+		stack = Main.kits.getList(kit + ".armor").toArray(stack);
+		return stack;
 	}
 	
 }

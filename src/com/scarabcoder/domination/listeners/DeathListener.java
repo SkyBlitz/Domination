@@ -8,9 +8,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import com.scarabcoder.domination.enums.GameStatus;
 import com.scarabcoder.domination.main.Main;
 
 public class DeathListener implements Listener {
+	
+	
 	@EventHandler
 	public void entityDamage(EntityDamageByEntityEvent e){
 		if((e.getEntity() instanceof Player) && ((e.getDamager() instanceof Player) || (e.getDamager() instanceof Arrow))){
@@ -22,12 +25,16 @@ public class DeathListener implements Listener {
 				p2 = (Player) e.getDamager();
 			}
 			if(Main.isGameRunning()){
-				if(Main.game.getTeam(p).getName().equals(Main.game.getTeam(p2).getName())){
-					e.setCancelled(true);
-				}else{
-					if(p.getHealth() - e.getDamage() <= 0d){
-						Main.game.handleDeath(e);
+				if(Main.game.getStatus().equals(GameStatus.INGAME)){
+					if(Main.game.getTeam(p).getName().equals(Main.game.getTeam(p2).getName())){
+						e.setCancelled(true);
+					}else{
+						if(p.getHealth() - e.getDamage() <= 0d){
+							Main.game.handleDeath(e);
+						}
 					}
+				}else{
+					e.setCancelled(true);
 				}
 			}
 			

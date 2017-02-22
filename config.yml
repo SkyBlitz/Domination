@@ -9,4 +9,8 @@ permissions:
     player: 'domination.player'
     moderator: 'domination.moderator'
 game: none
+lobby: domination
 lobbytime: 25
+whitelisted:
+    - 'leave'
+    - 'domination'

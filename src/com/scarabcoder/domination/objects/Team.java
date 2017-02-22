@@ -25,13 +25,18 @@ public class Team {
 		this.spawn = spawn;
 	}
 	
+	
+	
 	public void addPlayer(GamePlayer p){
 		players.add(p);
 	}
 	
-	public int addPoints(int amount){
+	public void removePlayer(GamePlayer p){
+		players.remove(p);
+	}
+	
+	public void addPoints(int amount){
 		this.points += amount;
-		return points;
 	}
 
 	public ChatColor getColor() {
