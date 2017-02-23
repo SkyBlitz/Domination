@@ -12,22 +12,19 @@ import com.scarabcoder.domination.main.Main;
 
 public class CapturePoint {
 	
-	private Location l1;
-	
-	private Location l2;
-	
 	private Team team = null;
 	
 	private double captureStatus = 0.0;
+	
+	private Location center;
 	
 	private String name;
 	
 	private boolean captured = false;
 	
 	
-	public CapturePoint(Location l1, Location l2, String name){
-		this.l1 = l1;
-		this.l2 = l2;
+	public CapturePoint(Location center, String name){
+		this.center = center;
 		this.name = name;
 	}
 	
@@ -35,7 +32,7 @@ public class CapturePoint {
 		List<GamePlayer> pls = new ArrayList<GamePlayer>();
 		
 		for(GamePlayer p : game.getPlayers()){
-			if(Main.isInRect(p.getPlayer(), l1, l2)){
+			if(Main.isInRect(p.getPlayer(), this.getL1(), this.getL2())){
 				pls.add(p);
 			}
 		}
@@ -43,7 +40,13 @@ public class CapturePoint {
 		return pls;
 	}
 	
+	public ChatColor getEnemyChatColor(){
+		return this.getTeam().getColor().equals(ChatColor.RED) ? ChatColor.GREEN : ChatColor.RED;
+	}
 	
+	public ChatColor getChatColor(){
+		return this.getTeam().getColor().equals(ChatColor.RED) ? ChatColor.RED : ChatColor.GREEN;
+	}
 	
 	public DyeColor getColor(){
 		return (this.getTeam().getColor().equals(ChatColor.RED) ? DyeColor.RED : DyeColor.GREEN);
@@ -66,23 +69,31 @@ public class CapturePoint {
 
 
 	public Location getL1() {
+		Location l1 = this.center.clone();
+		l1.setX(l1.getX() - 4);
+		l1.setZ(l1.getZ() - 4);
+		l1.setY(l1.getY() - 1);
 		return l1;
 	}
 
 
-	public void setL1(Location l1) {
-		this.l1 = l1;
-	}
-
 
 	public Location getL2() {
+		Location l2 = this.center.clone();
+		l2.setX(l2.getX() + 4);
+		l2.setZ(l2.getZ() + 4);
+		l2.setY(l2.getY() + 5);
 		return l2;
 	}
-
-
-	public void setL2(Location l2) {
-		this.l2 = l2;
+	
+	public Location getCenter(){
+		return center;
 	}
+	
+	public void setCenter(Location l){
+		this.center = l;
+	}
+
 
 
 	public Team getTeam() {

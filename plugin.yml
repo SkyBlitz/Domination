@@ -1,8 +1,10 @@
 name: Domination
 version: 1.0
 main: com.scarabcoder.domination.main.Main
+softdepend: ["BossBarAPI"]
 commands:
     domination:
         description: Main plugin command.
+        aliases: [dom]
     leave:
         description: Quit to game lobby.

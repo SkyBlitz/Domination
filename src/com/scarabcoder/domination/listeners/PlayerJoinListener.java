@@ -16,6 +16,8 @@ public class PlayerJoinListener implements Listener{
 	@EventHandler
 	public void playerJoinEvent(PlayerJoinEvent e){
 		
+		
+		
 		Main.setGamePlayer(e.getPlayer());
 		if(Main.isGameRunning()){
 			Main.game.addPlayer(e.getPlayer());

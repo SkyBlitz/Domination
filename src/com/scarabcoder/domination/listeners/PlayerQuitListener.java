@@ -14,7 +14,7 @@ public class PlayerQuitListener implements Listener {
 		GamePlayer gp = Main.getGamePlayer(e.getPlayer().getUniqueId());
 		if(Main.isGameRunning()){
 			if(Main.game.getPlayers().contains(gp)){
-				Main.game.removePlayer(gp);
+				Main.game.removePlayer(gp, false, true);
 				e.setQuitMessage(null);
 			}
 		}

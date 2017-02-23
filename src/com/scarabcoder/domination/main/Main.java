@@ -26,6 +26,7 @@ import com.scarabcoder.domination.enums.MessageType;
 import com.scarabcoder.domination.listeners.CommandListener;
 import com.scarabcoder.domination.listeners.DeathListener;
 import com.scarabcoder.domination.listeners.DropListener;
+import com.scarabcoder.domination.listeners.HungerChangeListener;
 import com.scarabcoder.domination.listeners.PingListener;
 import com.scarabcoder.domination.listeners.PlayerJoinListener;
 import com.scarabcoder.domination.listeners.PlayerQuitListener;
@@ -61,7 +62,10 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 	
 	private static WorldEditPlugin we;
 	
+	
+	
 	public void onEnable(){
+		
 		
 		Main.plugin = this;
 		
@@ -170,6 +174,7 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 		Bukkit.getPluginManager().registerEvents(new SignListener(), this);
 		Bukkit.getPluginManager().registerEvents(new CommandListener(), this);
 		Bukkit.getPluginManager().registerEvents(new DropListener(), this);
+		Bukkit.getPluginManager().registerEvents(new HungerChangeListener(), this);
 	}
 	
 	public static boolean isSign(Block block){

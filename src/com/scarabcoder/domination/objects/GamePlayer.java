@@ -53,18 +53,19 @@ public class GamePlayer {
 	}
 	
 	public void showHelp(){
-		this.sendMessage(ChatColor.GOLD + "------ " + ChatColor.LIGHT_PURPLE + "Domination" + ChatColor.GOLD + " ------");
-		this.sendMessage(ChatColor.GOLD + "/domination admin create <arena>" + ChatColor.RESET + ": Creates a Domination arena.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin remove <arena>" + ChatColor.RESET + ": Removes a Domination arena.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin edit <arena>" + ChatColor.RESET + ": Enters edit mode for arena.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin setspawn <red/green/lobby>" + ChatColor.RESET + ": Sets the spawn for lobby or team.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin active <true/false>" + ChatColor.RESET + ": Makes current arena active.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin setpoint <name>" + ChatColor.RESET + ": Sets a capture point with WorldEdit selection.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin minteamsize/maxteamsize <amount>" + ChatColor.RESET + ": Sets the minimum and maximum team sizes.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin lobbyserver <server>" + ChatColor.RESET + ": Sets the lobby BungeeCord server.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin savekit <kit>" + ChatColor.RESET + ": Creates a kit with current inventory.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin loadkit <kit>" + ChatColor.RESET + ": Loads kit into inventory.");
-		this.sendMessage(ChatColor.GOLD + "/domination admin winscore <kit>" + ChatColor.RESET + ": Sets the score goal for teams to win.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "------ " + ChatColor.LIGHT_PURPLE + "Domination" + ChatColor.GOLD + " ------");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination create <arena>" + ChatColor.RESET + ": Creates a Domination arena.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination remove <arena>" + ChatColor.RESET + ": Removes a Domination arena.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination edit <arena>" + ChatColor.RESET + ": Enters edit mode for arena.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination setspawn <red/green/lobby>" + ChatColor.RESET + ": Sets the spawn for lobby or team.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination active <true/false>" + ChatColor.RESET + ": Makes current arena active.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination setpoint <name>" + ChatColor.RESET + ": Sets a capture point with WorldEdit selection.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination minteamsize/maxteamsize <amount>" + ChatColor.RESET + ": Sets the minimum and maximum team sizes.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination lobbyserver <server>" + ChatColor.RESET + ": Sets the lobby BungeeCord server.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination savekit <kit>" + ChatColor.RESET + ": Creates a kit with current inventory.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination loadkit <kit>" + ChatColor.RESET + ": Loads kit into inventory.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination winscore <score>" + ChatColor.RESET + ": Sets the score goal for teams to win.");
+		this.sendMessageWithoutPrefix(ChatColor.GOLD + "/domination defaultkit <kit>" + ChatColor.RESET + ": Sets the default kit.");
 	}
 	
 	public void loadKit(String kitname){
@@ -84,13 +85,13 @@ public class GamePlayer {
 	private void addInt(String column, int amount){
 		try {
 			String uuid = this.getPlayer().getUniqueId().toString();
-			PreparedStatement sq = Main.getConnection().prepareStatement("SELECT " + column + " FROM " + Main.prefix + "-users WHERE uuid=?");
+			PreparedStatement sq = Main.getConnection().prepareStatement("SELECT " + column + " FROM " + Main.prefix + "_users WHERE uuid=?");
 			
 			sq.setString(1, uuid);
 			sq.executeQuery();
 			ResultSet st = sq.executeQuery();
 			if(st.next()){
-				sq = Main.getConnection().prepareStatement("UPDATE " + Main.prefix + "-users SET " + column + "=? WHERE uuid=?");
+				sq = Main.getConnection().prepareStatement("UPDATE " + Main.prefix + "_users SET " + column + "=? WHERE uuid=?");
 				sq.setInt(1, st.getInt("kills") + amount);
 				sq.setString(2, uuid);
 				sq.executeUpdate();
@@ -104,6 +105,9 @@ public class GamePlayer {
 	
 	public void sendMessage(String message){
 		p.sendMessage(Message.PREFIX.toString() + " " + message);
+	}
+	public void sendMessageWithoutPrefix(String message){
+		p.sendMessage(message);
 	}
 	
 	public Player getPlayer(){
