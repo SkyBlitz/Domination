@@ -3,11 +3,17 @@ package com.scarabcoder.domination.objects;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.md_5.bungee.api.ChatColor;
 
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -101,7 +107,25 @@ public class GamePlayer {
 			e.printStackTrace();
 		}
 	}
-	
+	@SuppressWarnings("deprecation")
+	public void openKitGUI() {
+		
+		List<String> kits = new ArrayList<String>(Main.kits.getKeys(false));
+		System.out.println(kits.size());
+		System.out.println(kits.size() / 9);
+		
+		Inventory inv = Bukkit.createInventory(null, (int) (Math.ceil((double)kits.size() / 9d) * 9), "Select Kit");
+		int x = 0;
+		for(String s : kits){
+			ItemStack first = DataManager.getKitInventory(s)[0];
+			ItemMeta m = first.getItemMeta();
+			m.setDisplayName(ChatColor.GREEN + StringUtils.capitalise(s));
+			first.setItemMeta(m);
+			inv.setItem(x, first);
+			x++;
+		}
+		this.getPlayer().openInventory(inv);
+	}
 	
 	public void sendMessage(String message){
 		p.sendMessage(Message.PREFIX.toString() + " " + message);
@@ -145,5 +169,7 @@ public class GamePlayer {
 	public void setArena(String arena) {
 		this.arena = arena;
 	}
+
+	
 	
 }

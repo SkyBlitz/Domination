@@ -93,27 +93,6 @@ public class Game {
 		red = new Team(ChatColor.RED, "Red", DataManager.getLocation(this.getName() + ".team.red.spawn"));
 		green = new Team(ChatColor.GREEN, "Green", DataManager.getLocation(this.getName() + ".team.green.spawn"));
 		
-		for(CapturePoint p : this.getPoints()){
-			Location l1 = p.getL1().clone();
-			Location l2 = p.getL2().clone();
-			
-			if(l1.getY() > l2.getY()){
-				l1.setY(l2.getY());
-			}else{
-				l2.setY(l1.getY());
-			}
-			
-			Location current = l1.clone();
-			int x = 0;
-			int z = 0;
-			for(x = (int) l1.getX(); x != l2.getX(); x += (l1.getX() > l2.getX() ? -1 : 1)){
-				for(z = (int) l1.getZ(); z != l2.getZ(); z += (l1.getZ() > l2.getZ() ? -1 : 1)){
-					current.setZ(z);
-					current.getBlock().setType(Material.WOOL);
-				}
-				current.setX(x);
-			}
-		}
 		
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(), new Runnable(){
 
@@ -144,6 +123,9 @@ public class Game {
 								countdown --;
 							}else{
 								status = GameStatus.INGAME;
+								for(GamePlayer p : game.getPlayers()){
+									p.loadKit(game.kits.get(p));
+								}
 								for(GamePlayer p : red.getPlayers()){
 									p.getPlayer().teleport(red.getSpawn());
 								}
@@ -301,6 +283,8 @@ public class Game {
 					int cStatus = (int) Math.round(p.getCaptureStatus() * 4);
 					if(!p.isCaptured()) cStatus = 4 - cStatus;
 					int cur = 0;
+					current.setZ(current.getZ() + 0.5);
+					current.setX(current.getX() + 0.5);
 					for(int y = p.getCenter().getBlockY() + 1; y != p.getCenter().getBlockY() + 4; y++){
 						cur++;
 						current.setY(y);
@@ -344,7 +328,7 @@ public class Game {
 		this.pScores.put(gm, 0);
 		this.players.add(gm);
 		
-		gm.loadKit(defaultKit);
+		this.kits.put(gm, this.defaultKit);
 		
 		int r = red.getPlayers().size();
 		int g = green.getPlayers().size();
@@ -378,7 +362,10 @@ public class Game {
 		m.setDisplayName(ChatColor.GREEN + "Select Kit");
 		kit.setItemMeta(m);
 		
+		p.getInventory().setItem(0, kit);
+		p.getInventory().setItem(8, leave);
 		
+		p.updateInventory();
 		
 		Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 		Objective obj = scoreboard.registerNewObjective("main", "dummy");

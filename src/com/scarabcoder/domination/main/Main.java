@@ -30,7 +30,7 @@ import com.scarabcoder.domination.listeners.HungerChangeListener;
 import com.scarabcoder.domination.listeners.PingListener;
 import com.scarabcoder.domination.listeners.PlayerJoinListener;
 import com.scarabcoder.domination.listeners.PlayerQuitListener;
-import com.scarabcoder.domination.listeners.SignListener;
+import com.scarabcoder.domination.listeners.InteractListener;
 import com.scarabcoder.domination.objects.Game;
 import com.scarabcoder.domination.objects.GamePlayer;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -171,7 +171,7 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 		Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
 		Bukkit.getPluginManager().registerEvents(new PingListener(), this);
 		Bukkit.getPluginManager().registerEvents(new DeathListener(), this);
-		Bukkit.getPluginManager().registerEvents(new SignListener(), this);
+		Bukkit.getPluginManager().registerEvents(new InteractListener(), this);
 		Bukkit.getPluginManager().registerEvents(new CommandListener(), this);
 		Bukkit.getPluginManager().registerEvents(new DropListener(), this);
 		Bukkit.getPluginManager().registerEvents(new HungerChangeListener(), this);
