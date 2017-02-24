@@ -47,20 +47,10 @@ public class DominationCommand implements CommandExecutor {
 							}else{
 								p.sendMessage(ChatColor.RED + "Arena not found.");
 							}
-						}else if(args[0].equalsIgnoreCase("setspawn")){
+						}else if(args[0].equalsIgnoreCase("lobbyspawn")){
 							if(arena){
-								if(args[1].equals("red") || args[1].equals("green")){
-									System.out.println(p.getArena() + ".team." + args[1] + ".spawn");
-									System.out.println(Main.arenas.contains(p.getArena() + ".team." + args[1] + ".spawn"));
-									DataManager.saveLocation(p.getArena() + ".team." + args[1] + ".spawn", p.getPlayer().getLocation());
-									p.sendMessage(ChatColor.GREEN + "Set team " + args[1] + " spawnpoint.");
-								}else if(args[1].equalsIgnoreCase("lobby")){
-									
-									DataManager.saveLocation(p.getArena() + ".lobbyspawn", p.getPlayer().getLocation());
-									p.sendMessage(ChatColor.GREEN + "Set team lobby spawnpoint.");
-								}else{
-									p.sendMessage(ChatColor.RED + "Invalid team (use green/red).");
-								}
+								DataManager.saveLocation(p.getArena() + ".lobbyspawn", p.getPlayer().getLocation());
+								p.sendMessage(ChatColor.GREEN + "Set lobby spawn.");
 							}else{
 								p.sendMessage(Message.NOARENA.toString());
 							}
@@ -132,6 +122,20 @@ public class DominationCommand implements CommandExecutor {
 							if(p.getArena() != null){
 								Main.arenas.set(p.getArena() + ".defaultkit", args[1]);
 								p.sendMessage(ChatColor.GREEN + "Set default kit.");
+							}else{
+								p.sendMessage(Message.NOARENA.toString());
+							}
+						}else if(args[0].toLowerCase().startsWith("add") || args[0].toLowerCase().startsWith("remove")){
+							if(arena){
+								String s = (args[0].toLowerCase().endsWith("red") ? "red" : "green");
+								boolean add = args[0].toLowerCase().startsWith("add");
+								if(add){
+									DataManager.saveLocation(p.getArena() + ".team." + s + ".spawns." + args[1], p.getPlayer().getLocation());
+									p.sendMessage(ChatColor.GREEN + "Added spawn with ID " + args[1] + " to team " + s + ".");
+								}else{
+									Main.arenas.set(p.getArena() + ".team." + s + ".spawns." + args[1], null);
+									p.sendMessage(ChatColor.GREEN + "Removed spawnpoint from team " + s + ".");
+								}
 							}else{
 								p.sendMessage(Message.NOARENA.toString());
 							}

@@ -2,6 +2,7 @@ package com.scarabcoder.domination.objects;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -15,17 +16,16 @@ public class Team {
 	
 	private String name;
 	
-	private Location spawn;
+	private List<Location> spawns = new ArrayList<Location>();
 	
 	private int points = 0;
 	
-	public Team(ChatColor color, String name, Location spawn){
+	
+	public Team(ChatColor color, String name, List<Location> spawns){
 		this.color = color;
 		this.name = name;
-		this.spawn = spawn;
+		this.spawns = spawns;
 	}
-	
-	
 	
 	public void addPlayer(GamePlayer p){
 		players.add(p);
@@ -56,12 +56,9 @@ public class Team {
 	}
 
 	public Location getSpawn() {
-		return spawn;
+		return this.spawns.get(new Random().nextInt(this.spawns.size()));
 	}
 
-	public void setSpawn(Location spawn) {
-		this.spawn = spawn;
-	}
 
 	public int getPoints() {
 		return points;

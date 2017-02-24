@@ -1,6 +1,6 @@
 package com.scarabcoder.domination.listeners;
 
-import org.bukkit.Bukkit;
+import org.bukkit.Bukkit; 
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -46,7 +46,7 @@ public class DeathListener implements Listener {
 	
 	
 	@EventHandler
-	public void entityDeath(PlayerDeathEvent e){
+	public void entityDeath(final PlayerDeathEvent e){
 		e.setKeepInventory(true);
 		if(Main.isGameRunning()){
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), new Runnable(){

@@ -111,8 +111,6 @@ public class GamePlayer {
 	public void openKitGUI() {
 		
 		List<String> kits = new ArrayList<String>(Main.kits.getKeys(false));
-		System.out.println(kits.size());
-		System.out.println(kits.size() / 9);
 		
 		Inventory inv = Bukkit.createInventory(null, (int) (Math.ceil((double)kits.size() / 9d) * 9), "Select Kit");
 		int x = 0;

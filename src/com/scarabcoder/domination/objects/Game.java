@@ -8,6 +8,7 @@ import java.util.Random;
 
 import net.md_5.bungee.api.ChatColor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -62,6 +63,8 @@ public class Game {
 	
 	
 	private List<CapturePoint> points = new ArrayList<CapturePoint>();
+
+	private HashMap<GamePlayer, Integer> pDeaths = new HashMap<GamePlayer, Integer>();
 	
 	public Game(String nameID){
 		
@@ -90,8 +93,10 @@ public class Game {
 		
 		this.status = GameStatus.WAITING;
 		
-		red = new Team(ChatColor.RED, "Red", DataManager.getLocation(this.getName() + ".team.red.spawn"));
-		green = new Team(ChatColor.GREEN, "Green", DataManager.getLocation(this.getName() + ".team.green.spawn"));
+		
+		
+		red = new Team(ChatColor.RED, "Red", DataManager.getSpawnList(this.getName() + ".team.red.spawns"));
+		green = new Team(ChatColor.GREEN, "Green", DataManager.getSpawnList(this.getName() + ".team.green.spawns"));
 		
 		
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(), new Runnable(){
@@ -171,6 +176,11 @@ public class Game {
 								p.getTeam().addPoints(1);
 							}
 						}
+						if(pls.size() == 0){
+							if(p.getCaptureStatus() != 0){
+								p.setCaptureStatus(p.getCaptureStatus() - 0.2);
+							}
+						}
 						if(redCount != greenCount){
 							for(GamePlayer pl : pls){
 								
@@ -180,13 +190,13 @@ public class Game {
 								
 								if(p.getTeam() == null){
 									p.setTeam(tm);
-									p.setCaptureStatus(0.9);
+									p.setCaptureStatus(0.99);
 									game.broadcastMessage(tm.getColor() + ChatColor.BOLD.toString() + tm.getName() + ChatColor.RESET + " is capturing point " + ChatColor.BOLD.toString() + p.getName());
 	
 								}else if(!p.isCaptured()){
 									if(!p.getTeam().equals(game.getTeam(pl))){
 										p.setTeam(tm);
-										p.setCaptureStatus(0.9);
+										p.setCaptureStatus(0.99);
 										
 									}
 								}
@@ -285,7 +295,7 @@ public class Game {
 					int cur = 0;
 					current.setZ(current.getZ() + 0.5);
 					current.setX(current.getX() + 0.5);
-					for(int y = p.getCenter().getBlockY() + 1; y != p.getCenter().getBlockY() + 4; y++){
+					for(int y = p.getCenter().getBlockY() + 4; y != p.getCenter().getBlockY() + 7; y++){
 						cur++;
 						current.setY(y);
 						current.getWorld().spigot().playEffect(current, Effect.TILE_BREAK, (cur < cStatus ? enemyColor : teamColor).getId(), 0, 0.4f, 0.4f, 0.4f, 0.1f, 75, 50);
@@ -300,6 +310,9 @@ public class Game {
 	
 	public void setKit(GamePlayer p, String kit){
 		this.kits.put(p, kit);
+		if(this.getStatus().equals(GameStatus.INGAME)){
+			p.loadKit(kit);
+		}
 	}
 	
 	public String getKit(GamePlayer p){
@@ -319,6 +332,7 @@ public class Game {
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	public void addPlayer(Player p){
 		
 		p.getInventory().clear();
@@ -326,9 +340,10 @@ public class Game {
 		p.updateInventory();
 		GamePlayer gm = Main.getGamePlayer(p.getUniqueId());
 		this.pScores.put(gm, 0);
+		this.pDeaths.put(gm, 0);
 		this.players.add(gm);
 		
-		this.kits.put(gm, this.defaultKit);
+		this.setKit(gm, this.defaultKit);
 		
 		int r = red.getPlayers().size();
 		int g = green.getPlayers().size();
@@ -352,13 +367,15 @@ public class Game {
 			}
 		}
 		
+		p.setPlayerListName(team.getColor() + p.getName());
+		p.setDisplayName(team.getColor() + p.getName() + ChatColor.RESET);
 		
 		ItemStack leave = new ItemStack(Material.BED);
 		ItemMeta m = leave.getItemMeta();
 		m.setDisplayName(ChatColor.RED + "Leave");
 		leave.setItemMeta(m);
 		
-		ItemStack kit = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
+		ItemStack kit = new ItemStack(Material.HOPPER_MINECART);
 		m.setDisplayName(ChatColor.GREEN + "Select Kit");
 		kit.setItemMeta(m);
 		
@@ -372,6 +389,23 @@ public class Game {
 		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 		obj.setDisplayName(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "DOMINATION");
 		p.setScoreboard(scoreboard);
+		org.bukkit.scoreboard.Team redT = scoreboard.registerNewTeam(red.getName());
+		redT.setPrefix(red.getColor().toString());
+		org.bukkit.scoreboard.Team greenT = scoreboard.registerNewTeam(green.getName());
+		greenT.setPrefix(green.getColor().toString());
+		for(GamePlayer p2 : game.getPlayers()){
+			
+			if(this.getTeam(p2).equals(red)){
+				redT.addPlayer(p2.getPlayer());
+			}else{
+				greenT.addPlayer(p2.getPlayer());
+			}
+			
+			Scoreboard sb = p2.getPlayer().getScoreboard();
+			sb.getTeam(team.getName()).addPlayer(gm.getPlayer());
+			
+		}
+		
 		
 		this.updateScoreboard(gm);
 		
@@ -392,29 +426,44 @@ public class Game {
 		 * Domination
 		 * You are on Red
 		 * Kills: 12
+		 * Kit: Heavy
 		 * 
-		 * A: ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
-		 * B: ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
-		 * C: ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
+		 * A: ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
+		 * B: ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
+		 * C: ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
+		 * 
 		 * Red: 124/150
 		 * Green: 98/150
 		 */
 		
-		int scores = 7 + this.getPoints().size();
+		
+		
+		int scores = 0;
 		Scoreboard s = p.getPlayer().getScoreboard();
+		
+		
 		s.getObjective("main").unregister();
 		
 		Objective o = s.registerNewObjective("main", "dummy");
 		o.setDisplaySlot(DisplaySlot.SIDEBAR);
-		o.setDisplayName(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "DOMINATION");
-		
-		o.getScore("You are on team " + this.getTeam(p).getColor() + ChatColor.BOLD.toString() + this.getTeam(p).getName() + ChatColor.RESET + ".").setScore(scores);;
-		o.getScore("Kills: " + ChatColor.RED + this.pScores.get(p)).setScore(scores - 1);
-		o.getScore(ChatColor.GREEN + "Kit: " + ChatColor.RESET + this.kits.get(p)).setScore(scores - 2);
-		o.getScore("").setScore(scores - 3);
-		int minus = 3;
+		o.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.GREEN + ChatColor.MAGIC + "!" + ChatColor.RESET + ChatColor.LIGHT_PURPLE.toString() + "Domination" + ChatColor.GREEN + ChatColor.MAGIC + "!" + ChatColor.RESET + ChatColor.LIGHT_PURPLE + "");
+		o.getScore(ChatColor.DARK_GREEN + ChatColor.STRIKETHROUGH.toString() + ChatColor.BOLD + "-------------------").setScore(scores);
+		scores--;
+		o.getScore(ChatColor.GOLD + "You are on the " + this.getTeam(p).getColor() + ChatColor.BOLD.toString() + this.getTeam(p).getName() + ChatColor.RESET + ChatColor.GOLD + " team!").setScore(scores);;
+		scores--;
+		o.getScore(ChatColor.AQUA + "Stats:").setScore(scores);
+		scores--;
+		o.getScore(ChatColor.GOLD + "    Kills: " + ChatColor.RED + this.pScores.get(p)).setScore(scores);
+		scores--;
+		o.getScore(ChatColor.GOLD + "    Deaths: " + ChatColor.RED + this.pDeaths.get(p)).setScore(scores);
+		scores--;
+		o.getScore(ChatColor.YELLOW + "Kit: " + ChatColor.RESET + ChatColor.DARK_AQUA + ChatColor.BOLD.toString() + StringUtils.capitalize(this.kits.get(p))).setScore(scores);
+		scores--;
+		o.getScore(ChatColor.RESET.toString() + ChatColor.DARK_GREEN + ChatColor.STRIKETHROUGH.toString() + ChatColor.BOLD + "-------------------").setScore(scores);
+		scores--;
+		o.getScore(ChatColor.RED + "Rank: " + ChatColor.YELLOW + "Player");
 		for(CapturePoint cp : this.getPoints()){
-			minus++;
+			scores--;
 			ChatColor enemyColor;
 			ChatColor teamColor;
 			if(cp.isCaptured()){
@@ -440,14 +489,15 @@ public class Game {
 			
 			st = new StringBuilder(st).insert(point, teamColor).toString();
 			st = enemyColor + st;
-			o.getScore(teamColor + ChatColor.BOLD.toString() + cp.getName() + ChatColor.RESET + " " + st).setScore(scores - minus);
+			scores--;
+			o.getScore(teamColor + ChatColor.BOLD.toString() + cp.getName() + ChatColor.RESET + " " + st).setScore(scores);
 		}
-		minus++;
-		o.getScore("").setScore(scores - minus);
-		minus++;
-		o.getScore(red.getColor().toString() + red.getName() + ChatColor.RESET + ":    " + red.getPoints() + "/" + game.wincount).setScore(scores - minus);
-		minus++;
-		o.getScore(green.getColor().toString() + green.getName() + ChatColor.RESET + ": " + green.getPoints() + "/" + game.wincount).setScore(scores - minus);
+		scores--;
+		o.getScore("").setScore(scores);
+		scores--;
+		o.getScore(red.getColor().toString() + red.getName() + ChatColor.RESET + ":    " + red.getPoints() + "/" + game.wincount).setScore(scores);
+		scores--;
+		o.getScore(green.getColor().toString() + green.getName() + ChatColor.RESET + ": " + green.getPoints() + "/" + game.wincount).setScore(scores);
 		
 	}
 	
@@ -480,6 +530,7 @@ public class Game {
 		
 		this.pScores.put(h, this.pScores.get(h) + 1);
 		
+		this.pDeaths.put(d, this.pDeaths.get(d) + 1);
 		
 		
 		this.broadcastMessage(msg);

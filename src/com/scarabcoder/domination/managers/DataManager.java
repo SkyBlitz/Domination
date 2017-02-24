@@ -1,5 +1,8 @@
 package com.scarabcoder.domination.managers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -39,6 +42,14 @@ public class DataManager {
 		Main.arenas.set(arena + ".winscore", 150);
 		Main.arenas.set(arena + ".minteamsize", 1);
 		Main.arenas.set(arena + ".maxteamsize", 12);
+	}
+	
+	public static List<Location> getSpawnList(String prefix){
+		List<Location> locs = new ArrayList<Location>();
+		for(String key : Main.arenas.getConfigurationSection(prefix).getKeys(false)){
+			locs.add(DataManager.getLocation(prefix + "." + key));
+		}
+		return locs;
 	}
 	
 	public static void saveLocation(String prefix, Location loc){

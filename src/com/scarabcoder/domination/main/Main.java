@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.UUID;
 
+import net.md_5.bungee.api.ChatColor;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,21 +21,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import com.scarabcoder.domination.commands.DominationCommand;
 import com.scarabcoder.domination.commands.LeaveCommand;
 import com.scarabcoder.domination.enums.MessageType;
+import com.scarabcoder.domination.listeners.BlockListener;
 import com.scarabcoder.domination.listeners.CommandListener;
 import com.scarabcoder.domination.listeners.DeathListener;
 import com.scarabcoder.domination.listeners.DropListener;
 import com.scarabcoder.domination.listeners.HungerChangeListener;
+import com.scarabcoder.domination.listeners.InteractListener;
+import com.scarabcoder.domination.listeners.InventoryClickListener;
 import com.scarabcoder.domination.listeners.PingListener;
 import com.scarabcoder.domination.listeners.PlayerJoinListener;
 import com.scarabcoder.domination.listeners.PlayerQuitListener;
-import com.scarabcoder.domination.listeners.InteractListener;
+import com.scarabcoder.domination.listeners.SignListener;
 import com.scarabcoder.domination.objects.Game;
 import com.scarabcoder.domination.objects.GamePlayer;
-import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class Main extends JavaPlugin implements PluginMessageListener{
 	
@@ -50,6 +56,8 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 	
 	public static File arenasFile;
 	
+	public static Scoreboard sTeam;
+	
 	public static FileConfiguration kits;
 	
 	public static File kitsFile;
@@ -60,12 +68,16 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 	
 	public static Game game;
 	
-	private static WorldEditPlugin we;
 	
 	
 	
 	public void onEnable(){
 		
+		Main.sTeam = Bukkit.getScoreboardManager().getNewScoreboard();
+		Team t = sTeam.registerNewTeam("Red");
+		t.setPrefix(ChatColor.RED.toString());
+		t = sTeam.registerNewTeam("Green");
+		t.setPrefix(ChatColor.GREEN.toString());
 		
 		Main.plugin = this;
 		
@@ -80,7 +92,6 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 		this.getCommand("domination").setExecutor(new DominationCommand());
 		this.getCommand("leave").setExecutor(new LeaveCommand());
 		
-		we = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
 		
 		this.initMySQL();
 		
@@ -99,13 +110,17 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 		
 	}
 	
+	@Override
+	public void onDisable(){
+		if(Main.isGameRunning()){
+			Main.game.endGame();
+		}
+	}
+	
 	public static boolean isGameRunning(){
 		return !(game == null);
 	}
 	
-	public static WorldEditPlugin getWorldEdit(){
-		return we;
-	}
 	
 	public static void saveArenas(){
 		try {
@@ -175,6 +190,9 @@ public class Main extends JavaPlugin implements PluginMessageListener{
 		Bukkit.getPluginManager().registerEvents(new CommandListener(), this);
 		Bukkit.getPluginManager().registerEvents(new DropListener(), this);
 		Bukkit.getPluginManager().registerEvents(new HungerChangeListener(), this);
+		Bukkit.getPluginManager().registerEvents(new InventoryClickListener(), this);
+		Bukkit.getPluginManager().registerEvents(new SignListener(), this);
+		Bukkit.getPluginManager().registerEvents(new BlockListener(), this);
 	}
 	
 	public static boolean isSign(Block block){
